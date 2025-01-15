@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <title>學習日文動漫</title>
+</head>
+
+<body>
+    <section class="hero is-info is-fullheight">
+        <div class="box" style="margin: 30px 5%;">
+            <div class="title">看動漫學日文</div>
+            <form action="/submit" method="post" enctype="multipart/form-data" id="myform">
+
+                <input class="button" type="file" name="file1" placeholder="upload file">
+                <input class="button has-background-primary" type="submit" value="檔案上傳">
+            </form>
+            <br>
+            <p id="return_result" class="has-text-danger">{{prediction}}</p>
+            <div id="row" class="columns">
+                <div id="myGraph" class="column">
+                    <video id="myVideo" width="100%" controls></video>
+                </div>
+                <div class="column" style="overflow: auto;height: 500px;">
+
+                    {% if response %}
+                    {% for dialog in response.dialogs %}
+                    <div class="box">
+                        <h2 class="subtitle">{{dialog[2]}}<br>
+                            <p class="has-text-success">{{dialog[3]}}</p>
+                        </h2>
+                        <button class="button" onclick="setLoop('{{dialog[0]}}', '{{dialog[1]}}')"
+                            title="重播這句">↻</button>
+                        <button class="button" onclick="jumpToTime('{{dialog[0]}}')" title="播放這句">▶</button>
+                        <button class="button" onclick="stopVideo()" title="暫停">⏸︎</button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                </div>
+            </div>
+            <div id="video_file_name" style="visibility: hidden;">{{filename}}</div>
+        </div>
+    </section>
+</body>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(function () {
+        if ($("#return_result").text() != "") {
+            let video_file_name = $("#video_file_name").text();
+            $("#myVideo").attr("src", "http://127.0.0.1:5001/static/data/" + video_file_name);
+
+        } else {
+            console.log("No data");
+        }
+
+        $('#myform').submit(function () {
+            $("#return_result").text("請耐心等待，大約需等待影片時長的0.5到1倍之間，若等待過久，請嘗試別的影片");
+        });
+
+    });
+    const video = document.getElementById('myVideo');
+    let loopStart = 0;
+    let loopEnd = 0;
+    let loopInterval;
+
+    // 跳轉到指定時間並立即播放
+    function jumpToTime(time) {
+        clearLoop();  // 清除循環計時器
+        const seconds = timeToSeconds(time);
+        video.currentTime = seconds;
+        video.play();
+    }
+
+    // 設定循環播放範圍並立即播放
+    function setLoop(start, end) {
+        clearLoop();  // 清除循環計時器
+        loopStart = timeToSeconds(start);
+        loopEnd = timeToSeconds(end);
+
+        video.currentTime = loopStart;
+        video.play();
+
+        loopInterval = setInterval(() => {
+            if (video.currentTime >= loopEnd) {
+                video.currentTime = loopStart;
+                video.play();
+            }
+        }, 100);
+    }
+
+    // 停止影片播放
+    function stopVideo() {
+        clearLoop();  // 清除循環計時器
+        video.pause();
+    }
+
+    // 清除循環計時器的函數
+    function clearLoop() {
+        if (loopInterval) {
+            clearInterval(loopInterval);
+            loopInterval = null;
+        }
+    }
+
+    // 將時間字串轉換為秒數
+    function timeToSeconds(time) {
+        const parts = time.split(':');
+        return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+</script>
+
+</html>
