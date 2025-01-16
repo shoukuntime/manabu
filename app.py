@@ -20,7 +20,7 @@ import re
 # config = configparser.ConfigParser()
 # config.read('config.ini')
 # api_keys = config.get('Google', 'GEMINI_API_KEY').replace('\n', '').split(',')
-api_keys = os.getenv("GEMINI_API_KEY")
+api_keys = os.getenv("GEMINI_API_KEY").replace('\n', '').split(',')
 genai.configure(api_key=random.choice(api_keys))
     
 def prompt_to_json(prompt, videofile):
